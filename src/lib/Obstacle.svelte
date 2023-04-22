@@ -1,18 +1,16 @@
 <script lang="ts">
 	import { minWidth } from '../store';
-
 	export let r = 0;
-	export let offset = 0;
-
+	export let collided = false;
 	$: borderWidth = ($minWidth * 20) / 1080;
 </script>
 
 <div class="absolute overflow-hidden">
 	<div
 		style:--size="{$minWidth}px"
-		style:--offset="{offset}ms"
 		style:--r="{r}deg"
 		style:border-width="{borderWidth}px"
+		class:collided
 		class="border-t-4 border-solid rounded-full obstacle border-violet-400 border-t-transparent"
 	/>
 </div>
@@ -25,7 +23,10 @@
 		scale: 1;
 		overflow: hidden;
 		animation: scale 5s linear infinite;
-		animation-delay: var(--offset);
+	}
+
+	.collided {
+		@apply opacity-30 border-b-red-500 border-l-red-500 border-r-red-500;
 	}
 
 	@keyframes scale {

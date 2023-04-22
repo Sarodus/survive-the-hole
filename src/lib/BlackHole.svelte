@@ -1,14 +1,33 @@
 <script lang="ts">
+	import { fade } from 'svelte/transition';
+	import { lost } from '../store';
+
 	export let size = 0;
 	$: blur = 200 / size;
+
+	let showTitle = false;
+	let showTitleTimeout: number;
+
+	$: if ($lost) {
+		showTitleTimeout = setTimeout(() => (showTitle = true), 1000);
+	} else {
+		showTitle = false;
+		clearTimeout(showTitleTimeout);
+	}
 </script>
 
 <div
 	style:--blur="{blur}px"
 	style:--size="{size}px"
 	id="hole"
-	class="absolute bg-black border-4 border-t-8 border-solid rounded-full border-violet-800"
-/>
+	class="absolute flex items-center justify-center bg-black border-4 border-t-8 border-solid rounded-full border-violet-800"
+>
+	{#if showTitle}
+		<span class="text-2xl text-white" in:fade={{ duration: 1000 }} out:fade={{ duration: 200 }}>
+			Survive the hole
+		</span>
+	{/if}
+</div>
 
 <style>
 	#hole {

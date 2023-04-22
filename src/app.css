@@ -5,3 +5,8 @@
 body {
     @apply bg-slate-950
 }
+
+button {
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+}
