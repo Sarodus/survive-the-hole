@@ -1,37 +1,42 @@
 <script lang="ts">
-	export let x = 0;
+	import { minWidth } from '../store';
+
 	export let r = 0;
+	export let offset = 0;
+
+	$: borderWidth = ($minWidth * 20) / 1080;
 </script>
 
-<div
-	style:--size="{500}px"
-	class="
-    obstacle
-    absolute
-    rounded-full
-    border-4
-    border-solid
-    border-violet-800
-    border-t-transparent
-    border-t-4
-"
-/>
+<div class="absolute overflow-hidden">
+	<div
+		style:--size="{$minWidth}px"
+		style:--offset="{offset}ms"
+		style:--r="{r}deg"
+		style:border-width="{borderWidth}px"
+		class="border-t-4 border-solid rounded-full obstacle border-violet-400 border-t-transparent"
+	/>
+</div>
 
 <style>
 	.obstacle {
-		transform: scale(1);
+		transform: scale(1) rotate(var(--r));
 		width: var(--size);
 		height: var(--size);
-		scale: 5;
+		scale: 1;
 		overflow: hidden;
 		animation: scale 5s linear infinite;
-		/* animation-duration: 12s; */
-		/* filter: blur(var(--blur)) drop-shadow(1px -2px 12px #a21caf); */
+		animation-delay: var(--offset);
 	}
 
 	@keyframes scale {
+		0% {
+			opacity: 0;
+		}
+		10% {
+			opacity: 1;
+		}
 		to {
-			transform: scale(0);
+			transform: scale(0) rotate(var(--r));
 		}
 	}
 </style>
