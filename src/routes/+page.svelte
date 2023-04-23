@@ -3,7 +3,7 @@
 	import BlackHole from '$lib/BlackHole.svelte';
 	import Player from '$lib/Player.svelte';
 	import Obstacle from '$lib/Obstacle.svelte';
-	import { lost, minWidth } from '../store';
+	import { installStore, lost, minWidth } from '../store';
 	import { tweened } from 'svelte/motion';
 	import { dev } from '$app/environment';
 
@@ -167,6 +167,12 @@
 		if (right) x += speed;
 		y += PLAYER_SPEED;
 	}
+
+	async function install() {
+		$installStore.prompt();
+		await $installStore.userChoice;
+		$installStore = null;
+	}
 </script>
 
 <svelte:window
@@ -199,6 +205,15 @@
 <div class="fixed inset-0 flex">
 	{#if $lost}
 		<button on:click={restart} class="w-full h-full" />
+
+		{#if $installStore}
+			<button
+				on:click={install}
+				class="fixed bottom-0 flex items-center justify-center w-full h-10 p-10 bg-purple-500 active:bg-purple-600"
+			>
+				<span class="text-2xl text-white">Install</span>
+			</button>
+		{/if}
 	{:else}
 		<button
 			on:pointerdown={() => (left = true)}
