@@ -169,8 +169,8 @@
 	}
 
 	async function install() {
-		$installStore.prompt();
-		await $installStore.userChoice;
+		$installStore?.prompt();
+		await $installStore?.userChoice;
 		$installStore = null;
 	}
 </script>
@@ -204,10 +204,11 @@
 
 <div class="fixed inset-0 flex">
 	{#if $lost}
-		<button on:click={restart} class="w-full h-full" />
+		<button aria-label="play" on:click={restart} class="w-full h-full" />
 
 		{#if $installStore}
 			<button
+				aria-label="install"
 				on:click={install}
 				class="fixed bottom-0 flex items-center justify-center w-full h-10 p-10 bg-purple-500 active:bg-purple-600"
 			>
@@ -216,11 +217,13 @@
 		{/if}
 	{:else}
 		<button
+			aria-label="left"
 			on:pointerdown={() => (left = true)}
 			on:pointerup={() => (left = false)}
 			class="w-full h-full"
 		/>
 		<button
+			aria-label="right"
 			on:pointerdown={() => (right = true)}
 			on:pointerup={() => (right = false)}
 			class="w-full h-full"
