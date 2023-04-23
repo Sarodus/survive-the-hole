@@ -5,14 +5,12 @@
 	import Obstacle from '$lib/Obstacle.svelte';
 	import { lost, minWidth } from '../store';
 	import { tweened } from 'svelte/motion';
+	import { dev } from '$app/environment';
 
-	const BLACK_HOLE_GROWTH = 0.1;
-	const PLAYER_SPEED = 0.1;
 	const PLAYER_ROTATION_RATIO = 20;
-	const DEBUG = true;
+	const DEBUG = dev;
 	const OBSTACLES = 5;
 	const OBSTACLE_HURT = 20;
-	const DEATH_OFFSET = 20;
 
 	type Obstacle = {
 		index: number;
@@ -34,14 +32,23 @@
 	let obstacles: Obstacle[] = [];
 	let collisionChecks: number[] = [];
 
-	const size = tweened(20, { duration: 400 });
+	const holeSize = tweened(20, { duration: 400 });
+
+	$: BLACK_HOLE_GROWTH = $minWidth / 5000;
+	$: PLAYER_SPEED = $minWidth / 5000;
+	$: DEATH_OFFSET = $minWidth / 50;
 
 	$: $minWidth = Math.min(width, height);
 	$: speed = Math.min(y / PLAYER_ROTATION_RATIO, 15);
+	$: maxHoleSize = $minWidth / 2;
+
 	$: if ($lost) {
-		$size = 400;
+		$holeSize = maxHoleSize;
 	} else {
-		$size = ($minWidth * Math.min(Math.max(ticks * BLACK_HOLE_GROWTH, 20), 400)) / 1080;
+		$holeSize = Math.min(
+			maxHoleSize,
+			($minWidth * Math.min(Math.max(ticks * BLACK_HOLE_GROWTH, 20), 400)) / 1080
+		);
 	}
 
 	onMount(() => {
@@ -61,7 +68,6 @@
 		x = 0;
 		y = 100;
 		ticks = 0;
-		console.log('RESTART');
 	}
 
 	function setScreenSize() {
@@ -98,7 +104,7 @@
 		if (!isAngleInRange(x, r - 45, r + 45)) {
 			obstacles[obstacleIndex].collided = true;
 			y -= OBSTACLE_HURT;
-			if (y - DEATH_OFFSET < $size) {
+			if (y - DEATH_OFFSET < $holeSize) {
 				endGame();
 			}
 		}
@@ -178,7 +184,7 @@
 			<p>x:{x}</p>
 			<p>y:{y}</p>
 			<p>speed:{speed}</p>
-			<p>size:{$size}</p>
+			<p>size:{$holeSize}</p>
 		</div>
 	{/if}
 	{#each obstacles as obstacle (obstacle.index)}
@@ -186,7 +192,7 @@
 			<Obstacle r={obstacle.r} collided={obstacle.collided} />
 		{/if}
 	{/each}
-	<BlackHole size={$size} />
+	<BlackHole size={$holeSize} />
 	<Player bind:x bind:y />
 </div>
 
