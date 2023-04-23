@@ -218,14 +218,26 @@
 	{:else}
 		<button
 			aria-label="left"
-			on:pointerdown={() => (left = true)}
-			on:pointerup={() => (left = false)}
+			on:pointerdown={(e) => {
+				e.preventDefault();
+				left = true;
+			}}
+			on:pointerup={(e) => {
+				e.preventDefault();
+				left = false;
+			}}
 			class="w-full h-full"
 		/>
 		<button
 			aria-label="right"
-			on:pointerdown={() => (right = true)}
-			on:pointerup={() => (right = false)}
+			on:pointerdown={(e) => {
+				e.preventDefault();
+				right = true;
+			}}
+			on:pointerup={(e) => {
+				e.preventDefault();
+				right = false;
+			}}
 			class="w-full h-full"
 		/>
 	{/if}
