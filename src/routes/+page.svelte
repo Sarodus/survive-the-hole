@@ -237,6 +237,8 @@
 
 		{#if $installStore}
 			<button
+				out:fade
+				in:fade={{ duration: 3000 }}
 				aria-label="install"
 				on:click={installStore.install}
 				class="fixed top-0 right-0 flex items-center justify-center h-10 p-10 bg-purple-500 active:bg-purple-600"
