@@ -1,18 +1,30 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
-	import { lost, minWidth } from '../store';
+	import { tweened } from 'svelte/motion';
+	import { lost, screenSize } from '../store';
 
-	export let size = 0;
-	$: blur = 200 / size;
+	const holeSize = tweened(20, { duration: 400 });
+
+	export let size = 20;
+	export let ticks = 0;
+
+	$: size = $holeSize;
 
 	let showTitle = false;
 	let showTitleTimeout: number;
 
-	$: fontSize = $minWidth / 20;
-
+	$: blur = 200 / $holeSize;
+	$: BLACK_HOLE_GROWTH = $screenSize / 5000;
+	$: maxHoleSize = $screenSize / 2;
+	$: fontSize = $screenSize / 20;
 	$: if ($lost) {
+		$holeSize = maxHoleSize;
 		showTitleTimeout = setTimeout(() => (showTitle = true), 1000);
 	} else {
+		$holeSize = Math.min(
+			maxHoleSize,
+			($screenSize * Math.min(Math.max(ticks * BLACK_HOLE_GROWTH, 20), 400)) / 1080
+		);
 		showTitle = false;
 		clearTimeout(showTitleTimeout);
 	}
@@ -21,7 +33,7 @@
 <div class="flex items-center justify-center blackhole-pulse">
 	<div
 		style:--blur="{blur}px"
-		style:--size="{size}px"
+		style:--size="{$holeSize}px"
 		id="hole"
 		class="absolute bg-black border-4 border-t-8 border-solid rounded-full border-violet-800"
 	/>

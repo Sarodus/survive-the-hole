@@ -1,78 +1,84 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { dev } from '$app/environment';
 	import BlackHole from '$lib/BlackHole.svelte';
 	import Player from '$lib/Player.svelte';
 	import Obstacle from '$lib/Obstacle.svelte';
-	import { installStore, lost, minWidth } from '../store';
-	import { tweened } from 'svelte/motion';
-	import { dev } from '$app/environment';
+	import { installStore, lost, screenSize } from '../store';
 
-	const PLAYER_ROTATION_RATIO = 20;
 	const DEBUG = dev;
-	const OBSTACLES = 5;
-	const OBSTACLE_HURT = 20;
+	const STARTING_PLAYER_DISTANCE = 5;
+	const PLAYER_SPEED = 0.033;
+	const ROTATION_SPEED = 10;
+	const TICK_INTERVAL = 33;
 
 	type Obstacle = {
-		index: number;
-		r: number;
+		radius: number;
 		collided: boolean;
-		hide: boolean;
+		duration: number;
 	};
 
+	let obstacleSpawnTime = 1000;
+	let obstacleDuration = 5000;
+	let idx = 0;
+
+	let holeSize = 20;
 	let left = false;
 	let right = false;
 	let x = 0;
-	let y = 100;
+	let playerDistance = STARTING_PLAYER_DISTANCE;
 	let ticks = 0;
-	let width = 1920;
-	let height = 1080;
 	let startTime = 0;
-	let obstacleChangeIndex = 0;
 	let obstacleTimeout: number;
-	let obstacles: Obstacle[] = [];
-	let collisionChecks: number[] = [];
-
-	const holeSize = tweened(20, { duration: 400 });
-
-	$: BLACK_HOLE_GROWTH = $minWidth / 5000;
-	$: PLAYER_SPEED = $minWidth / 5000;
-	$: DEATH_OFFSET = $minWidth / 50;
-
-	$: $minWidth = Math.min(width, height);
-	$: speed = Math.min(y / PLAYER_ROTATION_RATIO, 15);
-	$: maxHoleSize = $minWidth / 2;
-
-	$: if ($lost) {
-		$holeSize = maxHoleSize;
-	} else {
-		$holeSize = Math.min(
-			maxHoleSize,
-			($minWidth * Math.min(Math.max(ticks * BLACK_HOLE_GROWTH, 20), 400)) / 1080
-		);
-	}
+	let obstacles: Map<Symbol, Obstacle> = new Map();
+	let collisionChecks: Set<number> = new Set();
 
 	onMount(() => {
-		setScreenSize();
 		startTime = +new Date();
-		const tickInterval = setInterval(tick, 33);
-		const obstacleSetInterval = setTimeout(() => obstacleChange(), 1000);
+		const tickInterval = setInterval(tick, TICK_INTERVAL);
 		return () => {
-			clearTimeout(obstacleSetInterval);
+			collisionChecks.forEach((x) => clearTimeout(x));
 			clearInterval(tickInterval);
-			clearInterval(obstacleTimeout);
+			clearTimeout(obstacleTimeout);
 		};
 	});
+
+	function obstacleSpawn() {
+		const index = Symbol();
+		const radius = getRandomObstacleRadio();
+
+		obstacles.set(index, {
+			collided: false,
+			radius,
+			duration: obstacleDuration
+		});
+		obstacles = obstacles;
+
+		obstacleTimeout = setTimeout(obstacleSpawn, obstacleSpawnTime);
+		setTimeout(() => {
+			obstacles.delete(index);
+			obstacles = obstacles;
+		}, obstacleDuration);
+
+		// Cahos start with the two trains collision problem :D
+		const timeToGetPlayer = obstacleDuration * (1 - playerDistance / 100);
+		const percentageToGetPlayerAtActualPosition = (timeToGetPlayer * 100) / obstacleDuration;
+		const playerWouldMovePercent = (obstacleDuration / TICK_INTERVAL) * PLAYER_SPEED;
+		const percentToGetPlayerInFuturePosition =
+			percentageToGetPlayerAtActualPosition - playerWouldMovePercent;
+		const finalTimeToGetPlayer = (percentToGetPlayerInFuturePosition / 100) * obstacleDuration;
+
+		collisionChecks.add(setTimeout(() => checkCollision(radius), finalTimeToGetPlayer - 10));
+	}
 
 	function restart() {
 		$lost = false;
 		x = 0;
-		y = 100;
+		idx = 0;
+		obstacles = new Map();
+		playerDistance = STARTING_PLAYER_DISTANCE;
 		ticks = 0;
-	}
-
-	function setScreenSize() {
-		width = window.innerWidth;
-		height = window.innerHeight;
+		obstacleTimeout = setTimeout(obstacleSpawn, 0);
 	}
 
 	function randomIntFromInterval(min: number, max: number) {
@@ -82,31 +88,9 @@
 		return randomIntFromInterval(0, 7) * 45;
 	}
 
-	function obstacleChange() {
-		const index = obstacleChangeIndex % OBSTACLES;
-		const r = getRandomObstacleRadio();
-		obstacles[index] = { index, r, collided: false, hide: $lost };
-		obstacleChangeIndex++;
-		const timeToCheckMs = (1000 - 10 - y) * 5;
-
-		if (!$lost) {
-			collisionChecks[index] = setTimeout(() => checkCollision(index), timeToCheckMs);
-		}
-		const time = +new Date();
-		const timeCorrection = (time - startTime) % 1000;
-		obstacleTimeout = setTimeout(obstacleChange, 1000 - timeCorrection);
-	}
-
-	function checkCollision(obstacleIndex: number) {
-		const obstacle = obstacles[obstacleIndex];
-		const r = obstacle.r;
-
-		if (!isAngleInRange(x, r - 45, r + 45)) {
-			obstacles[obstacleIndex].collided = true;
-			y -= OBSTACLE_HURT;
-			if (y - DEATH_OFFSET < $holeSize) {
-				endGame();
-			}
+	function checkCollision(radius: number) {
+		if (!isAngleInRange(x, radius - 45, radius + 45)) {
+			endGame();
 		}
 	}
 
@@ -122,12 +106,12 @@
 		if ($lost) return;
 		$lost = true;
 		right = left = false;
-		obstacles = obstacles.map((o) => ({
-			...o,
-			collided: true,
-			hide: true
-		}));
-		collisionChecks.map((x) => clearTimeout(x));
+		obstacles.forEach((obstacle) => {
+			obstacle.collided = true;
+		});
+		obstacles = obstacles;
+		clearTimeout(obstacleTimeout);
+		collisionChecks.forEach((x) => clearTimeout(x));
 	}
 
 	function handleKeyPress(e: KeyboardEvent) {
@@ -163,15 +147,9 @@
 	function tick() {
 		ticks++;
 		if ($lost) return;
-		if (left) x -= speed;
-		if (right) x += speed;
-		y += PLAYER_SPEED;
-	}
-
-	async function install() {
-		$installStore?.prompt();
-		await $installStore?.userChoice;
-		$installStore = null;
+		if (left) x -= ROTATION_SPEED;
+		if (right) x += ROTATION_SPEED;
+		playerDistance += PLAYER_SPEED;
 	}
 </script>
 
@@ -179,27 +157,25 @@
 	on:keypress|preventDefault={handleKeyPress}
 	on:keydown|preventDefault={handleKeyPress}
 	on:keyup|preventDefault={handleKeyUp}
-	on:resize={setScreenSize}
 />
 
 <div class="flex items-center justify-center w-screen h-screen">
 	{#if DEBUG}
 		<div class="absolute top-0 left-0 text-white">
-			<p>left:{left}</p>
-			<p>right:{right}</p>
-			<p>x:{x}</p>
-			<p>y:{y}</p>
-			<p>speed:{speed}</p>
-			<p>size:{$holeSize}</p>
+			<p>left: {left}</p>
+			<p>right: {right}</p>
+			<p>x: {x}</p>
+			<p>playerDistance: {playerDistance}</p>
+			<p>obstacleDuration: {obstacleDuration}</p>
+			<p>holeSize: {holeSize}</p>
+			<p>screenSize: {$screenSize}</p>
 		</div>
 	{/if}
-	{#each obstacles as obstacle (obstacle.index)}
-		{#if !obstacle.hide}
-			<Obstacle r={obstacle.r} collided={obstacle.collided} />
-		{/if}
+	{#each [...obstacles] as [index, obstacle] (index)}
+		<Obstacle radius={obstacle.radius} collided={obstacle.collided} duration={obstacle.duration} />
 	{/each}
-	<BlackHole size={$holeSize} />
-	<Player bind:x bind:y />
+	<BlackHole {ticks} bind:size={holeSize} />
+	<Player bind:x bind:playerDistance />
 </div>
 
 <div class="fixed inset-0 flex">
@@ -209,8 +185,8 @@
 		{#if $installStore}
 			<button
 				aria-label="install"
-				on:click={install}
-				class="fixed bottom-0 flex items-center justify-center w-full h-10 p-10 bg-purple-500 active:bg-purple-600"
+				on:click={installStore.install}
+				class="fixed top-0 right-0 flex items-center justify-center h-10 p-10 bg-purple-500 active:bg-purple-600"
 			>
 				<span class="text-2xl text-white">Install</span>
 			</button>

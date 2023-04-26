@@ -1,14 +1,18 @@
 <script lang="ts">
-	import { minWidth } from '../store';
-	export let r = 0;
+	import { screenSize } from '../store';
+
+	export let radius = 0;
 	export let collided = false;
-	$: borderWidth = ($minWidth * 20) / 1080;
+	export let duration = 5000;
+
+	$: borderWidth = ($screenSize * 20) / 1080;
 </script>
 
 <div class="absolute overflow-hidden">
 	<div
-		style:--size="{$minWidth}px"
-		style:--r="{r}deg"
+		style:--size="{$screenSize}px"
+		style:--radius="{radius}deg"
+		style:--duration="{duration}ms"
 		style:border-width="{borderWidth}px"
 		class:collided
 		class="border-t-4 border-solid rounded-full obstacle border-violet-400 border-t-transparent"
@@ -17,12 +21,12 @@
 
 <style>
 	.obstacle {
-		transform: scale(1) rotate(var(--r));
+		transform: scale(1) rotate(var(--radius));
 		width: var(--size);
 		height: var(--size);
 		scale: 1;
 		overflow: hidden;
-		animation: scale 5s linear infinite;
+		animation: scale var(--duration) linear;
 	}
 
 	.collided {
@@ -36,8 +40,12 @@
 		10% {
 			opacity: 1;
 		}
-		to {
-			transform: scale(0) rotate(var(--r));
+		99% {
+			opacity: 1;
+		}
+		100% {
+			transform: scale(0) rotate(var(--radius));
+			opacity: 0;
 		}
 	}
 </style>
