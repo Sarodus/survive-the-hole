@@ -190,7 +190,7 @@
 />
 
 {#if DEBUG}
-	<div class="absolute top-0 left-0 text-white">
+	<div class="absolute top-0 left-0 mt-20 text-white">
 		<p>left: {left}</p>
 		<p>right: {right}</p>
 		<p>x: {x}</p>
