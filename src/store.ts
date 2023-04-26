@@ -1,5 +1,5 @@
 import { browser } from '$app/environment';
-import { writable, readable, get } from 'svelte/store';
+import { writable, readable, get, derived, type Readable, type Writable } from 'svelte/store';
 
 interface BeforeInstallPromptEvent extends Event {
     readonly platforms: Array<string>;
@@ -34,4 +34,17 @@ export const screenSize = readable<number>(1000, (set) => {
         return () => window.removeEventListener('resize', handleResize)
     }
 })
-export const lost = writable(true)
+export const titleScreen = writable(true)
+export const win = writable(false)
+
+let idleTimeout: number;
+export const idle: Readable<boolean> = derived(titleScreen, ($lost, set) => {
+    clearTimeout(idleTimeout);
+    if ($lost) {
+        idleTimeout = setTimeout(() => {
+            set(true)
+        }, 3000);
+    } else {
+        set(false)
+    }
+}, true)

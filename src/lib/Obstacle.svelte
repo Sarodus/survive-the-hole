@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { screenSize } from '../store';
+	import { screenSize, win } from '../store';
 
 	export let radius = 0;
 	export let collided = false;
@@ -15,7 +15,8 @@
 		style:--duration="{duration}ms"
 		style:border-width="{borderWidth}px"
 		class:collided
-		class="border-t-4 border-solid rounded-full obstacle border-violet-400 border-t-transparent"
+		class:win={$win}
+		class="overflow-hidden border-t-4 border-solid rounded-full obstacle border-violet-400 border-t-transparent"
 	/>
 </div>
 
@@ -25,12 +26,15 @@
 		width: var(--size);
 		height: var(--size);
 		scale: 1;
-		overflow: hidden;
 		animation: scale var(--duration) linear;
 	}
 
 	.collided {
 		@apply opacity-30 border-b-red-500 border-l-red-500 border-r-red-500;
+	}
+
+	.win {
+		@apply opacity-0 border-b-green-500 border-l-green-500 border-r-green-500;
 	}
 
 	@keyframes scale {

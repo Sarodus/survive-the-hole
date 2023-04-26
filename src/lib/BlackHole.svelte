@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
 	import { tweened } from 'svelte/motion';
-	import { lost, screenSize } from '../store';
+	import { titleScreen, screenSize } from '../store';
 
 	const holeSize = tweened(20, { duration: 400 });
 
@@ -16,8 +16,8 @@
 	$: blur = 200 / $holeSize;
 	$: BLACK_HOLE_GROWTH = $screenSize / 5000;
 	$: maxHoleSize = $screenSize / 2;
-	$: fontSize = $screenSize / 20;
-	$: if ($lost) {
+
+	$: if ($titleScreen) {
 		$holeSize = maxHoleSize;
 		showTitleTimeout = setTimeout(() => (showTitle = true), 1000);
 	} else {
@@ -37,16 +37,6 @@
 		id="hole"
 		class="absolute bg-black border-4 border-t-8 border-solid rounded-full border-violet-800"
 	/>
-	{#if showTitle}
-		<span
-			style:font-size="{fontSize}px"
-			class="z-10 text-white transition-all duration-500"
-			in:fade={{ duration: 1000 }}
-			out:fade={{ duration: 200 }}
-		>
-			Survive the hole
-		</span>
-	{/if}
 </div>
 
 <style>

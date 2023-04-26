@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { tweened } from 'svelte/motion';
-	import { lost, screenSize } from '../store';
+	import { titleScreen, screenSize } from '../store';
 
 	export let x = 0;
 	export let playerDistance = 0;
@@ -8,7 +8,7 @@
 	const size = tweened(4, { duration: 2000 });
 
 	$: margin = (playerDistance / 100) * $screenSize;
-	$: $size = $lost ? 0 : Math.max(($screenSize * 8) / 1080, 4);
+	$: $size = $titleScreen ? 0 : Math.max(($screenSize * 8) / 1080, 4);
 </script>
 
 <div

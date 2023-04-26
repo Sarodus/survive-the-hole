@@ -4,10 +4,14 @@
 	import BlackHole from '$lib/BlackHole.svelte';
 	import Player from '$lib/Player.svelte';
 	import Obstacle from '$lib/Obstacle.svelte';
-	import { installStore, lost, screenSize } from '../store';
+	import Objective from '$lib/Objective.svelte';
+	import { fade } from 'svelte/transition';
+	import { idle, installStore, titleScreen, screenSize, win } from '../store';
 
 	const DEBUG = dev;
 	const STARTING_PLAYER_DISTANCE = 5;
+	const OBSTACLE_LOOP_TIME = 10_000;
+	const OBSTACLE_DISTANCE = 60;
 	const PLAYER_SPEED = 0.033;
 	const ROTATION_SPEED = 10;
 	const TICK_INTERVAL = 33;
@@ -25,6 +29,7 @@
 	let holeSize = 20;
 	let left = false;
 	let right = false;
+	let spin = true;
 	let x = 0;
 	let playerDistance = STARTING_PLAYER_DISTANCE;
 	let ticks = 0;
@@ -33,8 +38,9 @@
 	let obstacles: Map<Symbol, Obstacle> = new Map();
 	let collisionChecks: Set<number> = new Set();
 
+	$: fontSize = $screenSize / 20;
+
 	onMount(() => {
-		startTime = +new Date();
 		const tickInterval = setInterval(tick, TICK_INTERVAL);
 		return () => {
 			collisionChecks.forEach((x) => clearTimeout(x));
@@ -72,12 +78,14 @@
 	}
 
 	function restart() {
-		$lost = false;
+		startTime = +new Date();
+		$titleScreen = false;
 		x = 0;
 		idx = 0;
 		obstacles = new Map();
 		playerDistance = STARTING_PLAYER_DISTANCE;
 		ticks = 0;
+		$win = false;
 		obstacleTimeout = setTimeout(obstacleSpawn, 0);
 	}
 
@@ -103,8 +111,8 @@
 	}
 
 	function endGame() {
-		if ($lost) return;
-		$lost = true;
+		if ($titleScreen) return;
+		$titleScreen = true;
 		right = left = false;
 		obstacles.forEach((obstacle) => {
 			obstacle.collided = true;
@@ -112,6 +120,16 @@
 		obstacles = obstacles;
 		clearTimeout(obstacleTimeout);
 		collisionChecks.forEach((x) => clearTimeout(x));
+	}
+
+	function winGame() {
+		right = left = false;
+		clearTimeout(obstacleTimeout);
+		collisionChecks.forEach((x) => clearTimeout(x));
+		$win = true;
+		setTimeout(() => {
+			$titleScreen = true;
+		}, 2000);
 	}
 
 	function handleKeyPress(e: KeyboardEvent) {
@@ -126,7 +144,7 @@
 				break;
 			case 'Space':
 			case 'Enter':
-				if ($lost) restart();
+				if ($titleScreen) restart();
 				break;
 		}
 	}
@@ -146,10 +164,22 @@
 
 	function tick() {
 		ticks++;
-		if ($lost) return;
+		if ($titleScreen) return;
+		if ($win) return;
 		if (left) x -= ROTATION_SPEED;
 		if (right) x += ROTATION_SPEED;
 		playerDistance += PLAYER_SPEED;
+		checkWin();
+	}
+
+	function checkWin() {
+		if (!(playerDistance >= OBSTACLE_DISTANCE - 5 && playerDistance <= OBSTACLE_DISTANCE + 5))
+			return;
+		const now = +new Date() - startTime;
+		const angle = (360 * (now % OBSTACLE_LOOP_TIME)) / OBSTACLE_LOOP_TIME;
+		if (isAngleInRange(x, angle - 5, angle + 5)) {
+			winGame();
+		}
 	}
 </script>
 
@@ -159,18 +189,24 @@
 	on:keyup|preventDefault={handleKeyUp}
 />
 
-<div class="flex items-center justify-center w-screen h-screen">
-	{#if DEBUG}
-		<div class="absolute top-0 left-0 text-white">
-			<p>left: {left}</p>
-			<p>right: {right}</p>
-			<p>x: {x}</p>
-			<p>playerDistance: {playerDistance}</p>
-			<p>obstacleDuration: {obstacleDuration}</p>
-			<p>holeSize: {holeSize}</p>
-			<p>screenSize: {$screenSize}</p>
-		</div>
-	{/if}
+{#if DEBUG}
+	<div class="absolute top-0 left-0 text-white">
+		<p>left: {left}</p>
+		<p>right: {right}</p>
+		<p>x: {x}</p>
+		<p>playerDistance: {playerDistance}</p>
+		<p>obstacleDuration: {obstacleDuration}</p>
+		<p>holeSize: {holeSize}</p>
+		<p>screenSize: {$screenSize}</p>
+		<p>win: {$win}</p>
+	</div>
+{/if}
+
+<div
+	class="relative flex items-center justify-center w-screen h-screen overflow-hidden spin"
+	style:--to={spin ? '360deg' : '0'}
+>
+	<Objective distance={OBSTACLE_DISTANCE} timeToLoop={OBSTACLE_LOOP_TIME} />
 	{#each [...obstacles] as [index, obstacle] (index)}
 		<Obstacle radius={obstacle.radius} collided={obstacle.collided} duration={obstacle.duration} />
 	{/each}
@@ -178,8 +214,25 @@
 	<Player bind:x bind:playerDistance />
 </div>
 
+{#if $idle}
+	<div
+		style:font-size="{fontSize}px"
+		class="fixed inset-0 z-10 w-full h-full text-white transition-all duration-500"
+		in:fade={{ duration: 1000 }}
+		out:fade={{ duration: 200 }}
+	>
+		<div class="flex items-center justify-center h-full">
+			{#if $win}
+				<span transition:fade>You're safe now</span>
+			{:else}
+				<span transition:fade>Survive the hole</span>
+			{/if}
+		</div>
+	</div>
+{/if}
+
 <div class="fixed inset-0 flex">
-	{#if $lost}
+	{#if $titleScreen}
 		<button aria-label="play" on:click={restart} class="w-full h-full" />
 
 		{#if $installStore}
@@ -218,3 +271,14 @@
 		/>
 	{/if}
 </div>
+
+<style>
+	.spin {
+		animation: spin 10s linear infinite;
+	}
+	@keyframes spin {
+		to {
+			transform: rotate(var(--to));
+		}
+	}
+</style>
