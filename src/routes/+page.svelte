@@ -203,8 +203,8 @@
 {/if}
 
 <div
+	class:spin
 	class="relative flex items-center justify-center w-screen h-screen overflow-hidden spin"
-	style:--to={spin ? '360deg' : '0'}
 >
 	<Objective distance={OBSTACLE_DISTANCE} timeToLoop={OBSTACLE_LOOP_TIME} />
 	{#each [...obstacles] as [index, obstacle] (index)}
@@ -234,6 +234,16 @@
 <div class="fixed inset-0 z-50 flex">
 	{#if $titleScreen}
 		<button aria-label="play" on:click={restart} class="w-full h-full" />
+
+		<button
+			out:fade
+			in:fade={{ duration: 3000 }}
+			aria-label="spin"
+			on:click={() => (spin = !spin)}
+			class="fixed top-0 left-0 flex items-center justify-center h-10 p-10 bg-purple-500 active:bg-purple-600"
+		>
+			<span class:spin class="text-2xl text-white" class:opacity-50={!spin}>Spin</span>
+		</button>
 
 		{#if $installStore}
 			<button
@@ -280,7 +290,7 @@
 	}
 	@keyframes spin {
 		to {
-			transform: rotate(var(--to));
+			transform: rotate(360deg);
 		}
 	}
 </style>
