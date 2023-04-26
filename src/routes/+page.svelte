@@ -231,7 +231,7 @@
 	</div>
 {/if}
 
-<div class="fixed inset-0 flex">
+<div class="fixed inset-0 z-50 flex">
 	{#if $titleScreen}
 		<button aria-label="play" on:click={restart} class="w-full h-full" />
 
