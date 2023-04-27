@@ -20,7 +20,7 @@ export const LEVELS: Level[] = [
         targetDistance: 45
     },
     {
-        name: 'Mid (Tyrant) bpm: 72',
+        name: 'Normal (Tyrant) bpm: 72',
         src: `${assets}/Tyrant.mp3`,
         bpm: 72,
         playerSpeed: 12.5,
