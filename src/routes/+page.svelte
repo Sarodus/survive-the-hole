@@ -65,6 +65,7 @@
 			return new Promise((resolve) => {
 				level.audio = new Audio(level.src);
 				level.audio.loop = true;
+				level.audio?.load();
 				level.audio.onended = () => restartSong++;
 				level.audio.oncanplay = resolve;
 			});
