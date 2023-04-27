@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { fade } from 'svelte/transition';
 	import { tweened } from 'svelte/motion';
 	import { titleScreen, screenSize } from '../store';
 
@@ -44,14 +43,23 @@
 		width: var(--size);
 		height: var(--size);
 		filter: blur(var(--blur)) drop-shadow(1px -2px 12px #a21caf);
+		animation: hole-pulse var(--bpm) cubic-bezier(0.4, 0, 0.6, 1) infinite;
 	}
 	.blackhole-pulse {
-		animation: blackhole-pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+		animation: blackhole-pulse var(--bpm) cubic-bezier(0.4, 0, 0.6, 1) infinite;
 	}
 
 	@keyframes blackhole-pulse {
+		0% {
+			scale: 1;
+		}
 		50% {
 			scale: 1.05;
+		}
+	}
+	@keyframes hole-pulse {
+		0% {
+			filter: blur(var(--blur)) drop-shadow(1px -2px 20px #a21caf);
 		}
 	}
 </style>

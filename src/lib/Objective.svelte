@@ -44,7 +44,7 @@
 		animation: spin var(--time) linear infinite;
 	}
 	.pulse {
-		animation: 1s ease-out 1s normal none infinite running pulse;
+		animation: var(--bpm) ease-out var(--bpm) normal none infinite running pulse;
 		transform: scale3d(0.7, 0.7, 0);
 		transition: opacity 0.75s ease 0s;
 	}
