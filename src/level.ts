@@ -12,7 +12,7 @@ export type Level = {
 
 export const LEVELS: Level[] = [
     {
-        name: 'Super easy (Rhinoceros) bpm: 126/2=63',
+        name: 'Easy (Rhinoceros) bpm: 126/2=63',
         src: `${assets}/Rhinoceros.mp3`,
         bpm: 126 / 2,
         playerSpeed: 12.5,
@@ -20,7 +20,7 @@ export const LEVELS: Level[] = [
         targetDistance: 45
     },
     {
-        name: 'Easy (Tyrant) bpm: 72',
+        name: 'Mid (Tyrant) bpm: 72',
         src: `${assets}/Tyrant.mp3`,
         bpm: 72,
         playerSpeed: 12.5,
@@ -28,7 +28,7 @@ export const LEVELS: Level[] = [
         targetDistance: 50
     },
     {
-        name: 'Mid (Cut and Run) bpm: 109',
+        name: 'Hard (Cut and Run) bpm: 109',
         src: `${assets}/Cut and Run.mp3`,
         bpm: 109,
         playerSpeed: 20,
@@ -36,7 +36,7 @@ export const LEVELS: Level[] = [
         targetDistance: 45
     },
     {
-        name: 'Hardest (In a Heartbeat) bpm: 130',
+        name: 'Impossible (In a Heartbeat) bpm: 130',
         src: `${assets}/In a Heartbeat.mp3`,
         bpm: 130,
         playerSpeed: 20,
