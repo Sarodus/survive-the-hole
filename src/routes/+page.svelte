@@ -26,6 +26,7 @@
 	let loaded = false;
 	let loading = false;
 	let restartSong = 0;
+	let showQr = false;
 
 	let holeSize = 20;
 	let left = false;
@@ -113,6 +114,7 @@
 	}
 
 	function restart() {
+		showQr = false;
 		startTime = +new Date();
 		$titleScreen = false;
 		x = 0;
@@ -281,6 +283,16 @@
 	</div>
 {/if}
 
+{#if showQr}
+	<button
+		transition:fade
+		class="fixed bottom-0 right-0 z-[100] w-full h-full max-w-lg max-h-[512px] bg-black"
+		on:click={() => (showQr = false)}
+	>
+		<img alt="https://survive-the-hole.vercel.app/" src="/qr.svg" />
+	</button>
+{/if}
+
 <div class="fixed inset-0 z-50 flex">
 	{#if $titleScreen}
 		{#if !loaded}
@@ -311,8 +323,18 @@
 			</button>
 		{/if}
 
+		<button
+			out:fade
+			in:fade={{ duration: 3000 }}
+			aria-label="install"
+			on:click={() => (showQr = true)}
+			class="fixed bottom-0 right-0 flex items-center justify-center h-10 p-10 bg-purple-500 active:bg-purple-600"
+		>
+			<span class="text-2xl text-white">QR</span>
+		</button>
+
 		{#if loaded}
-			<div transition:fade class="absolute bottom-0 grid justify-between row-auto gap-4 p-4">
+			<div transition:fade class="absolute bottom-0">
 				<select
 					id="level"
 					out:fade
