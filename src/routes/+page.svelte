@@ -8,6 +8,7 @@
 	import { fade } from 'svelte/transition';
 	import { idle, installStore, titleScreen, screenSize, win } from '../store';
 	import { LEVELS, type Level } from '../level';
+	import { assets } from '$app/paths';
 
 	const DEBUG = dev;
 	const STARTING_PLAYER_DISTANCE = 5;
@@ -289,7 +290,7 @@
 		class="fixed bottom-0 right-0 z-[100] w-full h-full max-w-lg max-h-[512px] bg-black"
 		on:click={() => (showQr = false)}
 	>
-		<img alt="https://survive-the-hole.vercel.app/" src="/qr.svg" />
+		<img alt="https://survive-the-hole.vercel.app/" src="{assets}/qr.svg" />
 	</button>
 {/if}
 
