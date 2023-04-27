@@ -7,13 +7,12 @@
 	import Objective from '$lib/Objective.svelte';
 	import { fade } from 'svelte/transition';
 	import { idle, installStore, titleScreen, screenSize, win } from '../store';
+	import { LEVELS, type Level } from '../level';
 
 	const DEBUG = dev;
 	const STARTING_PLAYER_DISTANCE = 5;
-	const OBSTACLE_LOOP_TIME = 10_000;
-	const OBSTACLE_DISTANCE = 60;
+	const OBJECTIVE_LOOP_TIME = 10_000;
 	const PLAYER_SPEED = 0.033;
-	const ROTATION_SPEED = 10;
 	const TICK_INTERVAL = 33;
 
 	type Obstacle = {
@@ -22,15 +21,18 @@
 		duration: number;
 	};
 
-	let obstacleSpawnTime = 1000;
-	let obstacleDuration = 5000;
+	let level: Level;
 	let idx = 0;
+	let loaded = false;
+	let loading = false;
+	let restartSong = 0;
 
 	let holeSize = 20;
 	let left = false;
 	let right = false;
 	let spin = true;
 	let x = 0;
+	let bpm = 0;
 	let playerDistance = STARTING_PLAYER_DISTANCE;
 	let ticks = 0;
 	let startTime = 0;
@@ -38,6 +40,14 @@
 	let obstacles: Map<Symbol, Obstacle> = new Map();
 	let collisionChecks: Set<number> = new Set();
 
+	$: if (level?.audio) {
+		level.audio.currentTime = 0;
+		level.audio?.play();
+	}
+
+	$: OBJECTIVE_DISTANCE = level?.targetDistance;
+	$: obstacleDuration = level?.obstacleDuration;
+	$: musicTick = 60000 / level?.bpm ?? 1;
 	$: fontSize = $screenSize / 20;
 
 	onMount(() => {
@@ -48,6 +58,26 @@
 			clearTimeout(obstacleTimeout);
 		};
 	});
+
+	async function preLoadSongs() {
+		loading = true;
+		const loadSongs = LEVELS.map((level) => {
+			return new Promise((resolve) => {
+				level.audio = new Audio(level.src);
+				level.audio.loop = true;
+				level.audio.onended = () => restartSong++;
+				level.audio.oncanplay = resolve;
+			});
+		});
+		try {
+			await Promise.all(loadSongs);
+		} catch (error) {
+		} finally {
+			loaded = true;
+			loading = false;
+			level = LEVELS[1];
+		}
+	}
 
 	function obstacleSpawn() {
 		const index = Symbol();
@@ -60,7 +90,7 @@
 		});
 		obstacles = obstacles;
 
-		obstacleTimeout = setTimeout(obstacleSpawn, obstacleSpawnTime);
+		obstacleTimeout = setTimeout(obstacleSpawn, musicTick);
 		setTimeout(() => {
 			obstacles.delete(index);
 			obstacles = obstacles;
@@ -166,17 +196,17 @@
 		ticks++;
 		if ($titleScreen) return;
 		if ($win) return;
-		if (left) x -= ROTATION_SPEED;
-		if (right) x += ROTATION_SPEED;
+		if (left) x -= level.playerSpeed;
+		if (right) x += level.playerSpeed;
 		playerDistance += PLAYER_SPEED;
 		checkWin();
 	}
 
 	function checkWin() {
-		if (!(playerDistance >= OBSTACLE_DISTANCE - 5 && playerDistance <= OBSTACLE_DISTANCE + 5))
+		if (!(playerDistance >= OBJECTIVE_DISTANCE - 5 && playerDistance <= OBJECTIVE_DISTANCE + 5))
 			return;
 		const now = +new Date() - startTime;
-		const angle = (360 * (now % OBSTACLE_LOOP_TIME)) / OBSTACLE_LOOP_TIME;
+		const angle = (360 * (now % OBJECTIVE_LOOP_TIME)) / OBJECTIVE_LOOP_TIME;
 		if (isAngleInRange(x, angle - 5, angle + 5)) {
 			winGame();
 		}
@@ -191,6 +221,7 @@
 
 {#if DEBUG}
 	<div class="absolute top-0 left-0 mt-20 text-white">
+		<p>loaded: {loaded}</p>
 		<p>left: {left}</p>
 		<p>right: {right}</p>
 		<p>x: {x}</p>
@@ -199,20 +230,30 @@
 		<p>holeSize: {holeSize}</p>
 		<p>screenSize: {$screenSize}</p>
 		<p>win: {$win}</p>
+		<p>bpm: {bpm}</p>
+		<p>restartSong: {restartSong}</p>
 	</div>
 {/if}
 
-<div
-	class:spin
-	class="relative flex items-center justify-center w-screen h-screen overflow-hidden spin"
->
-	<Objective distance={OBSTACLE_DISTANCE} timeToLoop={OBSTACLE_LOOP_TIME} />
-	{#each [...obstacles] as [index, obstacle] (index)}
-		<Obstacle radius={obstacle.radius} collided={obstacle.collided} duration={obstacle.duration} />
-	{/each}
-	<BlackHole {ticks} bind:size={holeSize} />
-	<Player bind:x bind:playerDistance />
-</div>
+{#key level}
+	<div
+		style:--bpm="{musicTick}ms"
+		id="game"
+		class:spin
+		class="relative flex items-center justify-center w-screen h-screen overflow-hidden spin"
+	>
+		<Objective distance={OBJECTIVE_DISTANCE} timeToLoop={OBJECTIVE_LOOP_TIME} />
+		{#each [...obstacles] as [index, obstacle] (index)}
+			<Obstacle
+				radius={obstacle.radius}
+				collided={obstacle.collided}
+				duration={obstacle.duration}
+			/>
+		{/each}
+		<BlackHole {ticks} bind:size={holeSize} />
+		<Player bind:x bind:playerDistance />
+	</div>
+{/key}
 
 {#if $idle}
 	<div
@@ -222,7 +263,11 @@
 		out:fade={{ duration: 200 }}
 	>
 		<div class="flex items-center justify-center h-full">
-			{#if $win}
+			{#if !loaded}
+				<span>You're not safe...</span>
+			{:else if loading}
+				<span>Loading...</span>
+			{:else if $win}
 				<span transition:fade>You're safe now</span>
 			{:else}
 				<span transition:fade>Survive the hole</span>
@@ -233,7 +278,11 @@
 
 <div class="fixed inset-0 z-50 flex">
 	{#if $titleScreen}
-		<button aria-label="play" on:click={restart} class="w-full h-full" />
+		{#if !loaded}
+			<button aria-label="play" on:click={preLoadSongs} class="w-full h-full" />
+		{:else if !loading}
+			<button aria-label="play" on:click={restart} class="w-full h-full" />
+		{/if}
 
 		<button
 			out:fade
@@ -255,6 +304,26 @@
 			>
 				<span class="text-2xl text-white">Install</span>
 			</button>
+		{/if}
+
+		{#if loaded}
+			<div transition:fade class="absolute bottom-0 grid justify-between row-auto gap-4 p-4">
+				<select
+					id="level"
+					out:fade
+					in:fade={{ duration: 3000 }}
+					aria-label="level"
+					on:change={() => level?.audio?.pause()}
+					on:click={installStore.install}
+					class="p-4 text-white bg-purple-500 text-whitez active:bg-purple-600"
+					bind:value={level}
+				>
+					<option disabled value="" />
+					{#each LEVELS as lvl}
+						<option value={lvl}>{lvl.name}</option>
+					{/each}
+				</select>
+			</div>
 		{/if}
 	{:else}
 		<button
