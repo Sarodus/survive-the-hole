@@ -62,12 +62,13 @@
 	async function preLoadSongs() {
 		loading = true;
 		const loadSongs = LEVELS.map((level) => {
-			return new Promise((resolve) => {
+			return new Promise((resolve, reject) => {
 				level.audio = new Audio(level.src);
 				level.audio.loop = true;
 				level.audio?.load();
 				level.audio.onended = () => restartSong++;
 				level.audio.oncanplay = resolve;
+				level.audio.onerror = reject;
 			});
 		});
 		try {
