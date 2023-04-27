@@ -53,6 +53,9 @@
 	onMount(() => {
 		const tickInterval = setInterval(tick, TICK_INTERVAL);
 		return () => {
+			LEVELS.forEach((level) => {
+				level.audio?.pause();
+			});
 			collisionChecks.forEach((x) => clearTimeout(x));
 			clearInterval(tickInterval);
 			clearTimeout(obstacleTimeout);
@@ -77,7 +80,7 @@
 		} finally {
 			loaded = true;
 			loading = false;
-			level = LEVELS[1];
+			level = LEVELS[2];
 		}
 	}
 

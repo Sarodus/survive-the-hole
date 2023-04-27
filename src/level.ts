@@ -12,6 +12,14 @@ export type Level = {
 
 export const LEVELS: Level[] = [
     {
+        name: 'Tutorial (Bleeping Demo) bpm: 74/2=37',
+        src: `${assets}/Bleeping Demo.mp3`,
+        bpm: 74 / 2,
+        playerSpeed: 10,
+        obstacleDuration: 5000,
+        targetDistance: 20
+    },
+    {
         name: 'Easy (Rhinoceros) bpm: 126/2=63',
         src: `${assets}/Rhinoceros.mp3`,
         bpm: 126 / 2,
