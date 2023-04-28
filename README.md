@@ -21,9 +21,11 @@ https://sarodus.itch.io/survive-the-hole
 
 ![alt main](screenshots/screenshot-main.png)
 
-![alt main](screenshots/screenshot-ingame.png)
+![alt ingame](screenshots/screenshot-ingame.png)
 
-![alt main](screenshots/screenshot-collide.png)
+![alt collide](screenshots/screenshot-collide.png)
+
+![alt qr](screenshots/qrcode.png)
 
 
 ### Music used found in
