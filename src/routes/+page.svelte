@@ -290,7 +290,7 @@
 			{:else if !loaded}
 				<span>You're not safe...</span>
 			{:else if $win}
-				<span transition:fade>You're safe now</span>
+				<span in:fade>You're safe now</span>
 			{:else}
 				<span transition:fade>Survive the hole</span>
 			{/if}
@@ -355,7 +355,10 @@
 					out:fade
 					in:fade={{ duration: 3000 }}
 					aria-label="level"
-					on:change={() => level?.audio?.pause()}
+					on:change={() => {
+						$win = false;
+						level?.audio?.pause();
+					}}
 					on:click={installStore.install}
 					class="p-4 text-white bg-purple-500 text-whitez active:bg-purple-600"
 					bind:value={level}
