@@ -65,6 +65,7 @@
 	});
 
 	async function preLoadSongs() {
+		if (loading) return;
 		loading = true;
 		const loadSongs = LEVELS.map((level) => {
 			return new Promise((resolve, reject) => {
@@ -183,7 +184,7 @@
 			case 'Space':
 			case 'Enter':
 				if (!loaded) preLoadSongs();
-				if ($titleScreen) restart();
+				else if ($titleScreen) restart();
 				break;
 		}
 	}
