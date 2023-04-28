@@ -182,6 +182,7 @@
 				break;
 			case 'Space':
 			case 'Enter':
+				if (!loaded) preLoadSongs();
 				if ($titleScreen) restart();
 				break;
 		}
