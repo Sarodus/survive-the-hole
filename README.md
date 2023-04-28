@@ -18,6 +18,10 @@ https://sarodus.itch.io/survive-the-hole
 
 ## [survive-the-hole.vercel.app](https://survive-the-hole.vercel.app)
 
+# Gameplay
+[![Alt text](https://img.youtube.com/vi/O4YCOOfvtpE/0.jpg)](https://youtu.be/O4YCOOfvtpE)
+
+# Screenshots
 
 ![alt main](screenshots/screenshot-main.png)
 
