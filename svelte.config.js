@@ -21,7 +21,7 @@ const config = {
 			base: dev ? '' : process.env.BASE_PATH,
 		},
 		serviceWorker: {
-			register: process.env.NODE_ENV === 'production'
+			register: process.env.NODE_ENV === 'production' && !process.env.STATIC
 		}
 	}
 };
