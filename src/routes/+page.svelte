@@ -205,6 +205,7 @@
 	function tick() {
 		ticks++;
 		if ($titleScreen) return;
+		if ($win) playerDistance += PLAYER_SPEED * 50;
 		if ($win) return;
 		if (left) x -= level.playerSpeed;
 		if (right) x += level.playerSpeed;
