@@ -221,9 +221,19 @@
 			winGame();
 		}
 	}
+
+	function onChangeVisibility() {
+		if (document.hidden) {
+			level?.audio?.pause();
+		} else {
+			level?.audio?.play();
+			level = level;
+		}
+	}
 </script>
 
 <svelte:window
+	on:visibilitychange={onChangeVisibility}
 	on:keypress|preventDefault={handleKeyPress}
 	on:keydown|preventDefault={handleKeyPress}
 	on:keyup|preventDefault={handleKeyUp}
