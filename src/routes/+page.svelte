@@ -230,6 +230,7 @@
 {#if DEBUG}
 	<div class="absolute top-0 left-0 mt-20 text-white">
 		<p>loaded: {loaded}</p>
+		<p>loading: {loading}</p>
 		<p>left: {left}</p>
 		<p>right: {right}</p>
 		<p>x: {x}</p>
@@ -271,10 +272,10 @@
 		out:fade={{ duration: 200 }}
 	>
 		<div class="flex items-center justify-center h-full">
-			{#if !loaded}
-				<span>You're not safe...</span>
-			{:else if loading}
+			{#if loading}
 				<span>Loading...</span>
+			{:else if !loaded}
+				<span>You're not safe...</span>
 			{:else if $win}
 				<span transition:fade>You're safe now</span>
 			{:else}
