@@ -1,6 +1,8 @@
 # Survive the hole
 There is a black hole growing and you have to escape to save yourself from an imminent death
 
+The black hole is growing at the rythm of the music!
+
 --- 
 
 Participation to "Mallorca Game Jam 2023"
